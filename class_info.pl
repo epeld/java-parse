@@ -1,15 +1,15 @@
 
-:- module(class_info, []).
+:- module(qualified_class, []).
 :- use_module(library(dcg/basics)).
 
 :- set_prolog_flag(double_quotes, codes).
 
-class_info(ClassInfo, Package, Class) :-
-    class(ClassInfo, Class),
-    package(ClassInfo, Package),
-    class_info(ClassInfo).
+qualified_class(QualifiedClass, Package, Class) :-
+    class(QualifiedClass, Class),
+    package(QualifiedClass, Package),
+    qualified_class(QualifiedClass).
 
-class_info([class_info, Package, Class]) :-
+qualified_class([qualified_class, Package, Class]) :-
     forall(member(Part, Package),
            compound(Part)),
     compound(Class),
@@ -22,26 +22,26 @@ is_upper(C) :-
     X = C.
 
 
-codified([class_info, Package, Class], String) :-
+codified([qualified_class, Package, Class], String) :-
     phrase(java:fully_qualified_class(Package, Class), String).
 
-stringified(ClassInfo, String) :-
-    codified(ClassInfo, Codes),
+stringified(QualifiedClass, String) :-
+    codified(QualifiedClass, Codes),
     string_codes(String, Codes).
 
 
-package([class_info, Package, _], Package).
-class([class_info, _, Class], Class).
+package([qualified_class, Package, _], Package).
+class([qualified_class, _, Class], Class).
 
 
-:- begin_tests(class_info).
+:- begin_tests(qualified_class).
 
 :- set_prolog_flag(double_quotes, codes).
 
 test(encode) :-
-    class_info:stringified([class_info, ["foo", "bar", "baz"], "Hello"], _String).
+    qualified_class:stringified([qualified_class, ["foo", "bar", "baz"], "Hello"], _String).
 
 test(decode) :-
-    class_info:codified(_C, "foo.bar.baz.Hello"), !.
+    qualified_class:codified(_C, "foo.bar.baz.Hello"), !.
 
-:- end_tests(class_info).
+:- end_tests(qualified_class).

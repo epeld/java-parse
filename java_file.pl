@@ -18,20 +18,20 @@ read_file(File) :-
     atom(File),
     absolute_file_name(File, AbsFile),
     
-    phrase_from_file(java:file(ClassInfo, Imports), AbsFile ),
+    phrase_from_file(java:file(QualifiedClass, Imports), AbsFile ),
     
-    verify_class_names(ClassInfo, AbsFile),
+    verify_class_names(QualifiedClass, AbsFile),
 
     atom_string(AbsFile, SAbsFile),
-    class_info:stringified(ClassInfo, S),
+    qualified_class:stringified(QualifiedClass, S),
 
     write_term(class_definition(S, SAbsFile), [nl(true)]),
-    write_imports(Imports, ClassInfo), !.
+    write_imports(Imports, QualifiedClass), !.
 
 
-verify_class_names(ClassInfo, AbsFile) :-
+verify_class_names(QualifiedClass, AbsFile) :-
     expected_class_name(AbsFile, Expected),
-    class_info:class(ClassInfo, Real),
+    qualified_class:class(QualifiedClass, Real),
 
     ( atom_codes(Expected, Real), ! ;
       
@@ -41,10 +41,10 @@ verify_class_names(ClassInfo, AbsFile) :-
       write_term(warning:class_names_differ(SExpected, SReal, AbsFile), [nl(true)])
     ).
 
-write_imports(Imports, ClassInfo) :-
-    class_info:stringified(ClassInfo, Str),
+write_imports(Imports, QualifiedClass) :-
+    qualified_class:stringified(QualifiedClass, Str),
     forall(member(Import, Imports),
            (
-               class_info:stringified(Import, S),
+               qualified_class:stringified(Import, S),
                write_term(imports(Str, S), [nl(true)])
            )).

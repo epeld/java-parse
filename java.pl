@@ -6,8 +6,8 @@
 import(Package, Class) -->
     "import ", package(Package), ".", class(Class), ";".
 
-import(ClassInfo) -->
-    { class_info:class(ClassInfo, Class), class_info:package(ClassInfo, Package) },
+import(QualifiedClass) -->
+    { qualified_class:class(QualifiedClass, Class), qualified_class:package(QualifiedClass, Package) },
     import(Package, Class).
 
 package_declaration(Package) --> 
@@ -36,8 +36,8 @@ class([C | Rest]) -->
 
 
 import_list([]) --> [].
-import_list([ClassInfo | Imports]) -->
-    import(ClassInfo),
+import_list([QualifiedClass | Imports]) -->
+    import(QualifiedClass),
     java_blank,
     import_list(Imports).
 
@@ -57,10 +57,10 @@ file_header(Package, Imports) -->
     import_list(Imports),
     java_blank.
 
-file(ClassInfo, Imports) -->
+file(QualifiedClass, Imports) -->
     {
-        class_info:class(ClassInfo, Class),
-        class_info:package(ClassInfo, Package)
+        qualified_class:class(QualifiedClass, Class),
+        qualified_class:package(QualifiedClass, Package)
     },
     file_header(Package, Imports),
     class_declaration(Class, _Visibility).
@@ -116,17 +116,17 @@ builtin_class("Integer", ["java", "lang"]).
 :- set_prolog_flag(double_quotes, codes).
 
 test(file_header) :-
-    phrase_from_file(file(ClassInfo, Imports), "Foo.java"),
+    phrase_from_file(file(QualifiedClass, Imports), "Foo.java"),
     
-    class_info:class_info(Integer, ["java", "lang"], "Integer"),
-    class_info:class_info(List, ["java", "lang"], "Integer"),
-    class_info:class_info(Frame, ["java", "lang"], "Integer"),
+    qualified_class:qualified_class(Integer, ["java", "lang"], "Integer"),
+    qualified_class:qualified_class(List, ["java", "lang"], "Integer"),
+    qualified_class:qualified_class(Frame, ["java", "lang"], "Integer"),
     
     member(Integer, Imports),
     member(List, Imports),
     member(Frame, Imports),
     
-    class_info:package(ClassInfo, ["foo", "bar", "baz"]),
+    qualified_class:package(QualifiedClass, ["foo", "bar", "baz"]),
     !.
 
 test(import_list) :-
