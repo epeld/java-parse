@@ -18,7 +18,7 @@ read_file(File) :-
     atom(File),
     absolute_file_name(File, AbsFile),
     
-    phrase_from_file(java:file(QualifiedClass, Imports), AbsFile ),
+    phrase_from_file(java:file(ClassInfo), AbsFile ),
     
     verify_class_names(QualifiedClass, AbsFile),
 
@@ -26,7 +26,7 @@ read_file(File) :-
     qualified_class:stringified(QualifiedClass, S),
 
     write_term(class_definition(S, SAbsFile), [nl(true)]),
-    write_imports(Imports, QualifiedClass), !.
+    write_imports(ClassInfo), !.
 
 
 verify_class_names(QualifiedClass, AbsFile) :-
