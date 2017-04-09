@@ -76,11 +76,14 @@ class_body(_) --> parse_utils:remainder(_). % TODO
 visibility(public) --> "public".
 visibility(protected) --> "protected".
 visibility(private) --> "private".
-visibility(package) --> "".
 
+classLevel(static) --> "static".
 
-class_member() -->
-    visibility(_), blank, java_type(_), blank(), ";".
+class_member([class_member, Name, Type, Visibility]) -->
+    ( visibility(Visibility), blank, blanks ; { Visibility = none } ),
+    (classLevel(ClassLevel), blank, blanks ; { ClassLevel = instance } ),
+    java_type(Type), blank, blanks,
+    name(Name), blanks, ";".
 
 
 initial_value_assignment(_) -->
@@ -100,7 +103,7 @@ optional(Pred, Before, After) :-
     
 
 name(Name) -->
-    string_without("; .-(){}[],", "", Name).
+    string_without("; .-(){}[],", Name).
 
 java_type(int) --> "int".
 java_type(boolean) --> "boolean".
@@ -170,5 +173,18 @@ test(blanks) :-
 
 test(blanks2) :-
     phrase((blanks, "hello", blanks), " hello").
+
+test(class_member) :-
+    phrase(class_member(_), "public   int  hello ;"), !.
+
+test(class_member2) :-
+    phrase(class_member(_), "java.lang.Integer   hello ;"), !.
+
+test(class_member3) :-
+    phrase(class_member(_), "static int   hello ;"), !.
+
+test(class_member4) :-
+    phrase(class_member(_), "private static String   hello ;"), !.
+
 
 :- end_tests(java_parsing).
