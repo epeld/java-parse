@@ -4,18 +4,36 @@
 
 :- set_prolog_flag(double_quotes, codes).
 
+% TODO consider introducing a predicate 'known_class'
+% to distinguish existing classes
+
 qualified_class(QualifiedClass, Package, Class) :-
     class(QualifiedClass, Class),
     package(QualifiedClass, Package),
     qualified_class(QualifiedClass).
 
-qualified_class([qualified_class, Package, Class]) :-
-    forall(member(Part, Package),
-           compound(Part)),
-    compound(Class),
-
+qualified_class([qualified_class, _, Class]) :-
     Class = [First | _],
     is_upper(First).
+
+
+builtin_class(QualifiedClass) :-
+    builtin_class(QualifiedClass, _).
+
+builtin_class(QualifiedClass, Class) :-
+    lang_class(Class),
+    lang_package(Pkg),
+    qualified_class(QualifiedClass, Pkg, Class).
+
+
+% TODO
+codes([_X | _Rest]).
+
+
+package([X | Rest]) :-
+    codes(X), package(Rest).
+package([]).
+
 
 is_upper(C) :-
     to_upper(C, X),
@@ -32,6 +50,21 @@ stringified(QualifiedClass, String) :-
 
 package([qualified_class, Package, _], Package).
 class([qualified_class, _, Class], Class).
+
+
+builtin(Class) -->
+    { builtin_class(Class) },
+    Class.
+
+lang_package(Pkg) :-
+    phrase(java:package(Pkg), "java.lang").
+
+lang_class("String").
+lang_class("Integer").
+
+builtin_class_name(Class, Name) :-
+    builtin_class(Class),
+    class(Class, Name).
 
 
 :- begin_tests(qualified_class).
