@@ -77,13 +77,24 @@ visibility(public) --> "public".
 visibility(protected) --> "protected".
 visibility(private) --> "private".
 
-classLevel(static) --> "static".
+classLevel(class) --> "static".
 
-class_member([class_member, Name, Type, Visibility]) -->
-    ( visibility(Visibility), blank, blanks ; { Visibility = none } ),
-    (classLevel(ClassLevel), blank, blanks ; { ClassLevel = instance } ),
-    java_type(Type), blank, blanks,
-    name(Name), blanks, ";".
+myblank --> " ".
+myblanks --> [].
+myblanks --> myblank, myblanks.
+
+% We want to accept many blanks when parsing,
+% but output only none when encoding
+extrablanks --> % (Before, After)
+    myblanks.
+    %% ( nonvar(After), myblanks(Before, After) ;
+    %%   var(After), ( Before = After )).
+
+class_member([class_member, Name, Type, Visibility, ClassLevel]) -->
+    ( visibility(Visibility), myblank, extrablanks ; { Visibility = none } ),
+    (classLevel(ClassLevel), myblank, extrablanks ; { ClassLevel = instance } ),
+    java_type(Type), myblank, extrablanks,
+    name(Name), extrablanks, ";".
 
 
 initial_value_assignment(_) -->
@@ -92,15 +103,7 @@ initial_value_assignment(_) -->
     blank,
     % TODO:
     string_without(";").
-
-% Higher order DCG parser. Optionally uses its first argument to parse,
-% Otherwise succeeds without consuming any input
-optional(Pred, Before, After) :-
-    (
-        call(Pred, Before, After);
-        Before = After
-    ).
-    
+  
 
 name(Name) -->
     string_without("; .-(){}[],", Name).
@@ -186,5 +189,10 @@ test(class_member3) :-
 test(class_member4) :-
     phrase(class_member(_), "private static String   hello ;"), !.
 
+test(class_member5) :-
+    phrase(java:class_member([class_member, "testing", int, protected, instance]), S), !.
+
+test(class_member6) :-
+    phrase(java:class_member(X), "protected int testing;"), !.
 
 :- end_tests(java_parsing).
