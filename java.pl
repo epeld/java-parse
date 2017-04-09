@@ -196,4 +196,7 @@ test(class_member5) :-
 test(class_member6) :-
     phrase(java:class_member(X), "protected int testing;"), !.
 
+test(method) :-
+    phrase(java:method(X), "protected void superfn(int arg1, int arg2) { return 3; }"), !.
+
 :- end_tests(java_parsing).
