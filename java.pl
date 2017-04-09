@@ -85,10 +85,11 @@ myblanks --> myblank, myblanks.
 
 % We want to accept many blanks when parsing,
 % but output only none when encoding
-extrablanks --> % (Before, After)
-    myblanks.
-    %% ( nonvar(After), myblanks(Before, After) ;
-    %%   var(After), ( Before = After )).
+% NOTE: put extrablanks --> myblanks
+% for purity..
+extrablanks(Before, After) :-
+    ( nonvar(Before), var(After), myblanks(Before, After) ;
+      (var(Before) ; nonvar(After) ), ( Before = After )).
 
 class_member([class_member, Name, Type, Visibility, ClassLevel]) -->
     ( visibility(Visibility), myblank, extrablanks ; { Visibility = none } ),
