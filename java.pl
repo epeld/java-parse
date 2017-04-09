@@ -57,8 +57,10 @@ file_header(Package, Imports) -->
     import_list(Imports),
     java_blank.
 
-file(QualifiedClass, Imports) -->
+file(ClassInfo) -->
     {
+        class_info:class_info(ClassInfo, QualifiedClass, Imports),
+        
         qualified_class:class(QualifiedClass, Class),
         qualified_class:package(QualifiedClass, Package)
     },
@@ -103,28 +105,29 @@ name(Name) -->
 java_type(int) --> "int".
 java_type(boolean) --> "boolean".
 java_type(void) --> "void".
-java_type(BuiltinClass) --> builtin_class(BuiltinClass).
+java_type(QualifiedClass) -->
+    fully_qualified_class(Pkg, Class),
+    { qualified_class:qualified_class(QualifiedClass, Pkg, Class) }.
+java_type(Class) -->
+    class(Class).
 
-builtin_class(Class) :-
-    builtin_class(Class, _).
-
-builtin_class("String", ["java", "lang"]).
-builtin_class("Integer", ["java", "lang"]).
 
 :- begin_tests(java_parsing).
 
 :- set_prolog_flag(double_quotes, codes).
 
 test(file_header) :-
-    phrase_from_file(file(QualifiedClass, Imports), "Foo.java"),
+    phrase_from_file(file(ClassInfo), "Foo.java"),
+
+    class_info:class(ClassInfo, QualifiedClass),
     
     qualified_class:qualified_class(Integer, ["java", "lang"], "Integer"),
     qualified_class:qualified_class(List, ["java", "lang"], "Integer"),
     qualified_class:qualified_class(Frame, ["java", "lang"], "Integer"),
-    
-    member(Integer, Imports),
-    member(List, Imports),
-    member(Frame, Imports),
+
+    class_info:imports_class(ClassInfo, Integer),
+    class_info:imports_class(ClassInfo, List),
+    class_info:imports_class(ClassInfo, Frame),
     
     qualified_class:package(QualifiedClass, ["foo", "bar", "baz"]),
     !.
