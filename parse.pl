@@ -12,7 +12,7 @@ upper_char(C, [C | Rest], Rest) :-
 
 
 lower_word(Word) --> 
-    string_without(",.; \t-_!{}()<>\n", Word),
+    string_without(",.; \t-_!{}()[]<>\n", Word),
     {
         Word = [_ | _Rest],
         string_chars(String, Word),
