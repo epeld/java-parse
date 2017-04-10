@@ -119,6 +119,32 @@ java_type(Class) -->
     class(Class).
 
 
+final(final) --> "final".
+
+argument([argument, Name, Type, Mutability]) -->
+    ( { Mutability = mutable } ;
+      final(Mutability), myblank, extrablanks ),
+    java_type(Type), myblank, extrablanks, name(Name).
+
+
+argument_list([]) --> [].
+argument_list([Arg | Args]) -->
+    argument(Arg),
+    ( {Args = []} ; ",", argument_list(Args) ).
+
+
+block([block, Text]) -->
+    "{", block_body(Text), "}".
+
+block_body([Text]) -->
+    string_without("{}", Text).
+
+block_body([Text, InnerBlock | More]) -->
+    string_without("{}", Text),
+    ( block(InnerBlock), block_body(More) ;
+      { More = [] } ).
+     
+
 :- begin_tests(java_parsing).
 
 :- set_prolog_flag(double_quotes, codes).
@@ -191,12 +217,12 @@ test(class_member4) :-
     phrase(class_member(_), "private static String   hello ;"), !.
 
 test(class_member5) :-
-    phrase(java:class_member([class_member, "testing", int, protected, instance]), S), !.
+    phrase(java:class_member([class_member, "testing", int, protected, instance]), _S), !.
 
 test(class_member6) :-
-    phrase(java:class_member(X), "protected int testing;"), !.
+    phrase(java:class_member(_X), "protected int testing;"), !.
 
 test(method) :-
-    phrase(java:method(X), "protected void superfn(int arg1, int arg2) { return 3; }"), !.
+    phrase(java:method(_X), "protected void superfn(int arg1, int arg2) { return 3; }"), !.
 
 :- end_tests(java_parsing).
