@@ -132,6 +132,7 @@ java_type(Type) --> simple_java_type(Type).
 java_type(Type) --> composite_java_type(Type, _).
 
 
+mutable(mutable) -->.
 final(final) --> "final".
 
 argument([argument, Name, Type, Mutability]) -->
@@ -144,6 +145,23 @@ argument_list([]) --> [].
 argument_list([Arg | Args]) -->
     argument(Arg),
     ( {Args = []} ; ",", argument_list(Args) ).
+
+
+method([method, Name, Type, Mutability, Visibility, Arguments, Body]) -->
+    ( visibility(Visibility),
+      blank, extrablanks ;
+      { Visibility = package } ),
+    java_type(Type),
+    ( final(Mutability),
+      blank, extrablanks ;
+      mutable(Mutability) ),
+    name(Name),
+    blank, extrablanks
+    argument_list(Arguments),
+    blank, extrablanks,
+    block(Body).
+    
+    
 
 
 block([block, Text]) -->
