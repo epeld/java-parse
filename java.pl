@@ -109,14 +109,27 @@ initial_value_assignment(_) -->
 name(Name) -->
     string_without("; .-(){}[],", Name).
 
-java_type(int) --> "int".
-java_type(boolean) --> "boolean".
-java_type(void) --> "void".
-java_type(QualifiedClass) -->
+simple_java_type(int) --> "int".
+simple_java_type(boolean) --> "boolean".
+simple_java_type(void) --> "void".
+
+simple_java_type(QualifiedClass) -->
     fully_qualified_class(Pkg, Class),
     { qualified_class:qualified_class(QualifiedClass, Pkg, Class) }.
-java_type(Class) -->
+
+simple_java_type(Class) -->
     class(Class).
+
+composite_java_type(arrayOf(Type), 0) -->
+    simple_java_type(Type), "[]".
+
+composite_java_type(arrayOf(Type), N) -->
+    { between(1, 10, N), succ(N0, N) },
+    composite_java_type(Type, N0), "[]".
+
+
+java_type(Type) --> simple_java_type(Type).
+java_type(Type) --> composite_java_type(Type, _).
 
 
 final(final) --> "final".
