@@ -238,4 +238,19 @@ test(class_member6) :-
 test(method) :-
     phrase(java:method(_X), "protected void superfn(int arg1, int arg2) { return 3; }"), !.
 
+
+test(argument_list) :-
+    phrase(java:argument_list(_Args), "(int myint_3, final boolean aFlag, String[] arrayOfStrings)"), !.
+
+test(arg) :-
+    phrase(java:argument(_Arg), "int myint_3"), !.
+
+
+test(arg2) :-
+    phrase(java:argument(_Arg), "final boolean aFlag"), !.
+
+test(arg3) :-
+    phrase(java:argument(_Arg), "String[] array"), !.
+
+
 :- end_tests(java_parsing).
