@@ -90,6 +90,7 @@ myblanks --> myblank, myblanks.
 extrablanks(Before, After) :-
     ( nonvar(Before), var(After), myblanks(Before, After) ;
       (var(Before) ; nonvar(After) ), ( Before = After )).
+%extrablanks --> myblanks.
 
 class_member([class_member, Name, Type, Visibility, ClassLevel]) -->
     ( visibility(Visibility), myblank, extrablanks ; { Visibility = none } ),
@@ -107,7 +108,8 @@ initial_value_assignment(_) -->
   
 
 name(Name) -->
-    string_without("; .-(){}[],", Name).
+    { Name = [_ | _Rest] },
+    string_without(",; .-(){}[]", Name).
 
 simple_java_type(int) --> "int".
 simple_java_type(boolean) --> "boolean".
@@ -132,7 +134,7 @@ java_type(Type) --> simple_java_type(Type).
 java_type(Type) --> composite_java_type(Type, _).
 
 
-mutable(mutable) -->.
+mutable(mutable) --> [].
 final(final) --> "final".
 
 argument([argument, Name, Type, Mutability]) -->
@@ -141,26 +143,37 @@ argument([argument, Name, Type, Mutability]) -->
     java_type(Type), myblank, extrablanks, name(Name).
 
 
-argument_list([]) --> [].
-argument_list([Arg | Args]) -->
-    argument(Arg),
-    ( {Args = []} ; ",", argument_list(Args) ).
+argument_list(Args) --> "(", arguments(Args), ")".
+
+arguments([]) --> [].
+arguments([Arg]) --> argument(Arg).
+arguments([Arg, Arg2 | Args]) -->
+    argument(Arg), extrablanks, ",", extrablanks, arguments([Arg2 | Args]).
 
 
-method([method, Name, Type, Mutability, Visibility, Arguments, Body]) -->
+method([method, Name, Type, Mutability, Visibility, Arguments, Body, Throws]) -->
     ( visibility(Visibility),
       blank, extrablanks ;
       { Visibility = package } ),
-    java_type(Type),
+    
     ( final(Mutability),
       blank, extrablanks ;
       mutable(Mutability) ),
+    
+    java_type(Type),
+    blank, extrablanks,
     name(Name),
-    blank, extrablanks
+    extrablanks,
     argument_list(Arguments),
     blank, extrablanks,
-    block(Body).
     
+    ( throws_declaration(Throws),
+      blank, extrablanks ;
+      { Throws = [] } ),
+    
+    block(Body).
+
+throws_declaration([throws, "Exception"]) --> "throws Exception".
     
 
 
@@ -255,6 +268,18 @@ test(class_member6) :-
 
 test(method) :-
     phrase(java:method(_X), "protected void superfn(int arg1, int arg2) { return 3; }"), !.
+
+test(method3) :-
+    phrase(java:method(_X), "void superfn(boolean[] foo, boolean fafa) throws Exception { if {return 3;} else {} }"), !.
+
+test(method2) :-
+    phrase(java:method(_X), "final int superfn2(boolean flag, boolean[] flags) throws Exception { if(flag) {return 3;} else {return 1;} }"), !.
+
+test(argument_list1) :-
+    phrase(java:argument_list(_X), "(int arg1, int arg2)"), !.
+
+test(block) :-
+    phrase(java:block(_X), "{ return 3; }"), !.
 
 
 test(argument_list) :-
