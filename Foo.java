@@ -6,8 +6,15 @@ import java.lang.Integer;
 import java.util.List; // foo
 import java.awt.Frame;
 
-public class Foo {
-    int test = 3;
+public class Bar {
+    private static final int test = 3;
+
+    public String[] names = null;
+
+    void getIt(int arg1, boolean magicFlag) {
+        System.out.println("HELLO WORLD!");
+    }
+    
 }
 
 
