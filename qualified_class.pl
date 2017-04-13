@@ -72,7 +72,10 @@ builtin_class_name(Class, Name) :-
 :- set_prolog_flag(double_quotes, codes).
 
 test(encode) :-
-    qualified_class:stringified([qualified_class, ["foo", "bar", "baz"], [class, "Hello"]], _String).
+    qualified_class:stringified([qualified_class,
+                                 [package, ["foo", "bar", "baz"]],
+                                 [class, "Hello"]],
+                                _String).
 
 test(decode) :-
     qualified_class:codified(_C, "foo.bar.baz.Hello"), !.

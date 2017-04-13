@@ -18,15 +18,18 @@ package_declaration(Package) -->
 fully_qualified_class(Package, Class) -->
     package(Package), ".", class(Class).
 
-package([Something | Rest])        -->
+package([package, Package])        -->
+    packageL(Package).
+
+packageL([Something | Rest]) -->
     parse_utils:lower_word(Something),
-    sub_package(Rest).
+    sub_packageL(Rest).
 
 
-sub_package([]) --> [].
-sub_package([Sub1 | Rest]) -->
+sub_packageL([]) --> [].
+sub_packageL([Sub1 | Rest]) -->
     ".",
-    package([Sub1 | Rest]).
+    packageL([Sub1 | Rest]).
 
 
 
@@ -204,15 +207,15 @@ test(file_header) :-
 
     class_info:class(ClassInfo, QualifiedClass),
     
-    qualified_class:qualified_class(Integer, ["java", "lang"], [class, "Integer"]),
-    qualified_class:qualified_class(List, ["java", "lang"], [class, "Integer"]),
-    qualified_class:qualified_class(Frame, ["java", "lang"], [class, "Integer"]),
+    qualified_class:qualified_class(Integer, [package, ["java", "lang"]], [class, "Integer"]),
+    qualified_class:qualified_class(List, [package, ["java", "lang"]], [class, "Integer"]),
+    qualified_class:qualified_class(Frame, [package, ["java", "lang"]], [class, "Integer"]),
 
     class_info:imports_class(ClassInfo, Integer),
     class_info:imports_class(ClassInfo, List),
     class_info:imports_class(ClassInfo, Frame),
     
-    qualified_class:package(QualifiedClass, ["foo", "bar", "baz"]),
+    qualified_class:package(QualifiedClass, [package, ["foo", "bar", "baz"]]),
     !.
 
 test(import_list) :-
@@ -237,12 +240,12 @@ test(class) :-
 test(import, [nondet]) :- 
     phrase(import(A, B), "import foo.bar.Baz;"),
                                   
-    A = ["foo", "bar"],
+    A = [package, ["foo", "bar"]],
     B = [class, "Baz"].
 
 test(package, [nondet]) :-
     phrase(package(A), "foo.bar"),
-    A = ["foo", "bar"].
+    A = [package, ["foo", "bar"]].
 
 
 test(line_comment) :-
