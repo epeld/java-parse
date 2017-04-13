@@ -6,8 +6,7 @@
 import(Package, Class) -->
     "import ", package(Package), ".", class(Class), ";".
 
-import(QualifiedClass) -->
-    { qualified_class:class(QualifiedClass, Class), qualified_class:package(QualifiedClass, Package) },
+import([qualified_class, Package, Class]) -->
     import(Package, Class).
 
 package_declaration(Package) --> 
@@ -296,7 +295,6 @@ test(argument_list) :-
 
 test(arg) :-
     phrase(java:argument(_Arg), "int myint_3"), !.
-
 
 test(arg2) :-
     phrase(java:argument(_Arg), "final boolean aFlag"), !.
