@@ -7,6 +7,9 @@
 % TODO consider introducing a predicate 'known_class'
 % to distinguish existing classes
 
+
+%
+% TODO remove most of this code and merge the rest with java:
 qualified_class(QualifiedClass, Package, Class) :-
     class(QualifiedClass, Class),
     package(QualifiedClass, Package),
