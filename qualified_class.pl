@@ -12,7 +12,7 @@ qualified_class(QualifiedClass, Package, Class) :-
     package(QualifiedClass, Package),
     qualified_class(QualifiedClass).
 
-qualified_class([qualified_class, _, Class]) :-
+qualified_class([qualified_class, _, [class, Class]]) :-
     Class = [First | _],
     is_upper(First).
 
@@ -72,7 +72,7 @@ builtin_class_name(Class, Name) :-
 :- set_prolog_flag(double_quotes, codes).
 
 test(encode) :-
-    qualified_class:stringified([qualified_class, ["foo", "bar", "baz"], "Hello"], _String).
+    qualified_class:stringified([qualified_class, ["foo", "bar", "baz"], [class, "Hello"]], _String).
 
 test(decode) :-
     qualified_class:codified(_C, "foo.bar.baz.Hello"), !.

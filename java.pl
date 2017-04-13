@@ -30,7 +30,7 @@ sub_package([Sub1 | Rest]) -->
 
 
 
-class([C | Rest]) -->
+class([class, [C | Rest]]) -->
     parse_utils:upper_char(C),
     parse_utils:lower_word(Rest).
 
@@ -93,8 +93,14 @@ extrablanks(Before, After) :-
 %extrablanks --> myblanks.
 
 class_member([class_member, Name, Type, Visibility, ClassLevel]) -->
-    ( visibility(Visibility), myblank, extrablanks ; { Visibility = none } ),
-    (classLevel(ClassLevel), myblank, extrablanks ; { ClassLevel = instance } ),
+    ( visibility(Visibility),
+      myblank, extrablanks ;
+      { Visibility = none } ),
+    
+    ( classLevel(ClassLevel),
+      myblank, extrablanks ;
+      { ClassLevel = instance } ),
+    
     java_type(Type), myblank, extrablanks,
     name(Name), extrablanks, ";".
 
@@ -198,9 +204,9 @@ test(file_header) :-
 
     class_info:class(ClassInfo, QualifiedClass),
     
-    qualified_class:qualified_class(Integer, ["java", "lang"], "Integer"),
-    qualified_class:qualified_class(List, ["java", "lang"], "Integer"),
-    qualified_class:qualified_class(Frame, ["java", "lang"], "Integer"),
+    qualified_class:qualified_class(Integer, ["java", "lang"], [class, "Integer"]),
+    qualified_class:qualified_class(List, ["java", "lang"], [class, "Integer"]),
+    qualified_class:qualified_class(Frame, ["java", "lang"], [class, "Integer"]),
 
     class_info:imports_class(ClassInfo, Integer),
     class_info:imports_class(ClassInfo, List),
@@ -224,7 +230,7 @@ test(blanks_to_nl) :-
     phrase(blanks_to_nl, "").
 
 test(class) :-
-    phrase(class(W), "Foo"),
+    phrase(class([class, W]), "Foo"),
 
     W = "Foo".
 
@@ -232,7 +238,7 @@ test(import, [nondet]) :-
     phrase(import(A, B), "import foo.bar.Baz;"),
                                   
     A = ["foo", "bar"],
-    B = "Baz".
+    B = [class, "Baz"].
 
 test(package, [nondet]) :-
     phrase(package(A), "foo.bar"),
