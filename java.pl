@@ -123,17 +123,14 @@ initial_value_assignment(_) -->
 
 name(Name) -->
     { Name = [_ | _Rest] },
-    string_without(",; .-(){}[]", Name).
+    string_without(",; .-(){}[]=", Name).
 
 simple_java_type(int) --> "int".
 simple_java_type(boolean) --> "boolean".
 simple_java_type(void) --> "void".
 
-simple_java_type(QualifiedClass) -->
-    fully_qualified_class(QualifiedClass).
-
 simple_java_type(Class) -->
-    class(Class).
+    generic_java_class(Class).
 
 composite_java_type(arrayOf(Type), 0) -->
     simple_java_type(Type), "[]".
@@ -143,7 +140,7 @@ composite_java_type(arrayOf(Type), N) -->
     composite_java_type(Type, N0), "[]".
 
 generic_java_class([generic_class, Class, [params, Params]]) -->
-    java_class(Class), "<", generic_params(Params), ">".
+    java_class(Class), "<", generic_params(Params), extrablanks,  ">".
 
 generic_java_class([generic_class, Class, [params, implied]]) -->
     java_class(Class), "<>".
@@ -168,6 +165,8 @@ java_type(Type) --> composite_java_type(Type, _).
 mutable(mutable) --> [].
 final(final) --> "final".
 
+
+
 argument([argument, Name, Type, Mutability]) -->
     ( { Mutability = mutable } ;
       final(Mutability), myblank, extrablanks ),
@@ -182,29 +181,47 @@ arguments([Arg, Arg2 | Args]) -->
     argument(Arg), extrablanks, ",", extrablanks, arguments([Arg2 | Args]).
 
 
-method([method, Name, Type, ClassLevel, Mutability, Visibility, Arguments, Body, Throws]) -->
-    ( visibility(Visibility),
-      blank, extrablanks ;
-      { Visibility = package } ),
+maybe(visibility, package) --> [].
+maybe(visibility, V) --> visibility(V), myblank, extrablanks.
 
-    ( class_level(ClassLevel),
-      blank, extrablanks ;
-      { ClassLevel = instance } ),
+maybe(mutability, mutable) --> [].
+maybe(mutability, final) --> "final", myblank, extrablanks.
+
+maybe(throws, []) --> [].
+maybe(throws, T) --> throws_declaration(T), myblank, extrablanks.
+
+
+maybe(class_level, instance) --> [].
+maybe(class_level, static) --> "static", myblank, extrablanks.
+
+constructor([constructor, Name, Mutability, Visibility, Arguments, Body, Throws]) -->
+    visibility(Visibility),
+    mutability(Mutability),
+
+    Name,
+    extrablanks,
+    argument_list(Arguments),
+    blank, extrablanks,
+
+    maybe(throws_declaration, Throws),
+
+    block(Body).
     
-    ( final(Mutability),
-      blank, extrablanks ;
-      mutable(Mutability) ),
+
+method([method, Name, Type, ClassLevel, Mutability, Visibility, Arguments, Body, Throws]) -->
+    maybe(visibility, Visibility),
+    maybe(class_level, ClassLevel),
+    maybe(mutability, Mutability),
     
     java_type(Type),
     blank, extrablanks,
+    
     name(Name),
     extrablanks,
     argument_list(Arguments),
     blank, extrablanks,
     
-    ( throws_declaration(Throws),
-      blank, extrablanks ;
-      { Throws = [] } ),
+    maybe(throws, Throws),
     
     block(Body).
 
@@ -222,7 +239,28 @@ block_body([Text, InnerBlock | More]) -->
     string_without("{}", Text),
     ( block(InnerBlock), block_body(More) ;
       { More = [] } ).
-     
+
+
+variable_declarations([var, Vars, Type, Mutability]) -->
+    maybe(mutability, Mutability),
+    java_type(Type),
+    myblank, extrablanks,
+    vars(Vars).
+
+
+vars([Var]) -->
+    var(Var).
+
+vars([Var, Var2 | Rest]) -->
+    var(Var), ",", myblank, extrablanks, vars([Var2 | Rest]).
+
+
+var([var, Name, Expr]) -->
+    name(Name), extrablanks, "=", extrablanks, expression(Expr).
+
+var([var, Name, none]) -->
+    name(Name), extrablanks.
+    
 
 :- begin_tests(java_parsing).
 
@@ -322,7 +360,7 @@ test(block) :-
 
 
 test(argument_list) :-
-    phrase(java:argument_list(_Args), "(int myint_3, final boolean aFlag, String[] arrayOfStrings)"), !.
+    phrase(java:argument_list(_Args), "(List<String > myint_3, final boolean aFlag, String[] arrayOfStrings)"), !.
 
 test(arg) :-
     phrase(java:argument(_Arg), "int myint_3"), !.
@@ -338,6 +376,13 @@ test(generics) :-
 
 test(generics) :-
     phrase(java:generic_java_class(_X), "java.util.List<>"), !.
+
+
+test(var) :-
+    phrase(java:variable_declarations(_X), "int foo, bar"), !.
+
+test(var2) :-
+    phrase(java:variable_declarations(_X), "java.util.Vector<Integer> foo, bar"), !.
 
 
 :- end_tests(java_parsing).
