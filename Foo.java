@@ -14,7 +14,10 @@ public class Bar {
     void getIt(int arg1, boolean magicFlag) {
         System.out.println("HELLO WORLD!");
     }
-    
+
+    public Bar(String test) {
+        this.names = new String[]{"testing"};
+    }
 }
 
 
