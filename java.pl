@@ -14,6 +14,10 @@ package_declaration(Package) -->
     package(Package), blanks,
     ";".
 
+fully_qualified_class(QualifiedClass) -->
+    fully_qualified_class(Pkg, Class),
+    { qualified_class:qualified_class(QualifiedClass, Pkg, Class) }.
+
 fully_qualified_class(Package, Class) -->
     package(Package), ".", class(Class).
 
@@ -31,6 +35,8 @@ sub_packageL([Sub1 | Rest]) -->
     packageL([Sub1 | Rest]).
 
 
+java_class(Class) --> class(Class).
+java_class(Class) --> fully_qualified_class(Class).
 
 class([class, [C | Rest]]) -->
     parse_utils:upper_char(C),
@@ -79,7 +85,7 @@ visibility(public) --> "public".
 visibility(protected) --> "protected".
 visibility(private) --> "private".
 
-classLevel(class) --> "static".
+class_level(class) --> "static".
 
 myblank --> " ".
 myblanks --> [].
@@ -99,7 +105,7 @@ class_member([class_member, Name, Type, Visibility, ClassLevel]) -->
       myblank, extrablanks ;
       { Visibility = none } ),
     
-    ( classLevel(ClassLevel),
+    ( class_level(ClassLevel),
       myblank, extrablanks ;
       { ClassLevel = instance } ),
     
@@ -124,8 +130,7 @@ simple_java_type(boolean) --> "boolean".
 simple_java_type(void) --> "void".
 
 simple_java_type(QualifiedClass) -->
-    fully_qualified_class(Pkg, Class),
-    { qualified_class:qualified_class(QualifiedClass, Pkg, Class) }.
+    fully_qualified_class(QualifiedClass).
 
 simple_java_type(Class) -->
     class(Class).
@@ -136,6 +141,24 @@ composite_java_type(arrayOf(Type), 0) -->
 composite_java_type(arrayOf(Type), N) -->
     { between(1, 10, N), succ(N0, N) },
     composite_java_type(Type, N0), "[]".
+
+generic_java_class([generic_class, Class, [params, Params]]) -->
+    java_class(Class), "<", generic_params(Params), ">".
+
+generic_java_class([generic_class, Class, [params, implied]]) -->
+    java_class(Class), "<>".
+
+generic_java_class([generic_class, Class, [params, []]]) -->
+    java_class(Class).
+
+generic_params([params, [Param]]) -->
+    generic_java_class(Param).
+
+generic_params([params, [Param1, Param2 | Rest]]) -->
+    generic_java_class(Param1),
+    ",", myblank, extrablanks,
+    generic_params([Param2 | Rest]).
+    
 
 
 java_type(Type) --> simple_java_type(Type).
@@ -151,7 +174,7 @@ argument([argument, Name, Type, Mutability]) -->
     java_type(Type), myblank, extrablanks, name(Name).
 
 
-argument_list(Args) --> "(", arguments(Args), ")".
+argument_list(Args) --> "(", extrablanks, arguments(Args), ")".
 
 arguments([]) --> [].
 arguments([Arg]) --> argument(Arg).
@@ -159,10 +182,14 @@ arguments([Arg, Arg2 | Args]) -->
     argument(Arg), extrablanks, ",", extrablanks, arguments([Arg2 | Args]).
 
 
-method([method, Name, Type, Mutability, Visibility, Arguments, Body, Throws]) -->
+method([method, Name, Type, ClassLevel, Mutability, Visibility, Arguments, Body, Throws]) -->
     ( visibility(Visibility),
       blank, extrablanks ;
       { Visibility = package } ),
+
+    ( class_level(ClassLevel),
+      blank, extrablanks ;
+      { ClassLevel = instance } ),
     
     ( final(Mutability),
       blank, extrablanks ;
@@ -283,6 +310,10 @@ test(method3) :-
 test(method2) :-
     phrase(java:method(_X), "final int superfn2(boolean flag, boolean[] flags) throws Exception { if(flag) {return 3;} else {return 1;} }"), !.
 
+
+test(method4) :-
+    phrase(java:method(_X), "protected static final void superfn() { return 3; }"), !.
+
 test(argument_list1) :-
     phrase(java:argument_list(_X), "(int arg1, int arg2)"), !.
 
@@ -301,6 +332,12 @@ test(arg2) :-
 
 test(arg3) :-
     phrase(java:argument(_Arg), "String[] array"), !.
+
+test(generics) :-
+    phrase(java:generic_java_class(_X), "java.util.List<String, java.lang.Integer>"), !.
+
+test(generics) :-
+    phrase(java:generic_java_class(_X), "java.util.List<>"), !.
 
 
 :- end_tests(java_parsing).
