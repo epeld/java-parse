@@ -8,13 +8,13 @@ ClassFile {
     u2             this_class;
     u2             super_class;
     u2             interfaces_count;
-    u2             interfaces;
+    u2             interfaces[interfaces_count];
     u2             fields_count;
-    field_info     fields;
+    field_info     fields[fields_count];
     u2             methods_count;
-    method_info    methods;
+    method_info    methods[methods_count];
     u2             attributes_count;
-    attribute_info attributes;
+    attribute_info attributes[attributes_count];
 }
 
 CONSTANT_Class_info {

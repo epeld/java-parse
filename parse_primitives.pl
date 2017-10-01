@@ -17,11 +17,11 @@ u2(U2) -->
   }.
 
 u4(U4) -->
-  u2(First),
-  u2(Second),
+  u1(A), u1(B), u1(C), u1(D),
   {
-   U4 is First << 16 + Second
+   U4 is A << 24 \/ B << 16 \/ C << 8 \/ D
   }.
+
 
 u8(U8) -->
   u4(First),
