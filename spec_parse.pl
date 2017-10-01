@@ -6,14 +6,25 @@
 
 :- set_prolog_flag(double_quotes, codes).
 
+test2(JavaSpec, Contents) :-
+  read_java_spec(JavaSpec),
+  read_class_file(JavaSpec, "./Hello.class", Contents).
+
+%
+% Top-Level API
+%
+read_java_spec(JavaSpec) :-
+  phrase_from_file(specs(JavaSpec), "./full.spec").
+
+
+read_class_file(JavaSpec, FilePath, Contents) :-
+  Parser = parse_field(JavaSpec, field(classfile, classfile), [], classfile(Contents)),
+  phrase_from_file(Parser, FilePath, [type(binary)]).
+
 %
 % Field Parsing
 %
-test2(Spec, R) :-
-  format("Reading spec.."),
-  phrase_from_file(specs(Spec), "./full.spec"),
-  format("- OK ~n"),
-  phrase_from_file(parse_field(Spec, field(foobar, classfile), [], R), "./Hello.class", [type(binary)]).
+
 
 parse_fields(_Specs, [], _ResultsBefore, [], OctetsBefore, OctetsBefore) :-
   true.
@@ -126,7 +137,7 @@ spec(spec(Name, Fields)) -->
 specs([Spec | Specs]) -->
   spec(Spec),
   {
-   Spec = spec(Name, _Fields), true
+   Spec = spec(_Name, _Fields), true
    %format("Read ~a~n", [Name])
    },
   blanks,
