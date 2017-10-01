@@ -1,5 +1,5 @@
 
-:- module(spec_parse, [test1/1, test2/2]).
+:- module(spec_parse, [test1/1, test2/2, read_java_spec/1, read_class_file/3, cp_info_tag/2]).
 
 :- use_module([library(http/dcg_basics)]).
 :- use_module([parse_primitives]).
@@ -65,7 +65,8 @@ parse_field(Specs, field(Identifier, Parser, ArrayTerm), Prev, Result, OctetsBef
   %format("Parsing ~a ~a entries", [Count, Parser]),
   length(Fields, Count),
   maplist(=(field(Parser, Parser)), Fields),
-  parse_fields(Specs, Fields, [], R, OctetsBefore, OctetsAfter),
+  parse_fields(Specs, Fields, [], R0, OctetsBefore, OctetsAfter),
+  maplist(arg(1), R0, R),
   parse_result(Identifier, R, Result).
 
 parse_field(Specs, field(Identifier, cp_info), _, Result, OctetsBefore, OctetsAfter) :-
