@@ -189,31 +189,6 @@ bytes_int_to_float(_Int, Float) :-
   todo_float(Float).
 
 
-%
-% Low-Level Primitives
-%
-u1(U1) --> [U1].
-
-u2(U2) -->
-  [Byte1, Byte2],
-  {
-   U2 is Byte1 << 8 + Byte2
-  }.
-
-u4(U4) -->
-  u2(First),
-  u2(Second),
-  {
-   U4 is First << 16 + Second
-  }.
-
-u8(U8) -->
-  u4(First),
-  u4(Second),
-  {
-   U8 is First << 32 + Second
-  }.
-
 
 parse_test_file(Props) :-
   phrase_from_file(class_file(Props), "./Hello.class", [type(binary)]).
