@@ -2,6 +2,7 @@
 :- module(spec_parse, [test1/1, test2/1]).
 
 :- use_module([library(http/dcg_basics)]).
+:- use_module([parse_primitives]).
 
 :- set_prolog_flag(double_quotes, codes).
 
@@ -9,10 +10,10 @@
 % Field Parsing
 %
 test2(Spec) :-
-  format("Reading spec.."),
-  phrase_from_file(spec(Spec), "./classfile.spec"),
+  format("Reading spec..~n"),
+  phrase_from_file(specs(Spec), "./full.spec"),
   format("- OK ~n"),
-  phrase_from_file(parse_field([Spec], field(foobar, classfile), [], R), "./Hello.class", [type(binary)]).
+  phrase_from_file(parse_field(Spec, field(foobar, classfile), [], R), "./Hello.class", [type(binary)]).
 
 parse_fields(Specs, [Field], ResultsBefore, [Result], OctetsBefore, OctetsAfter) :-
   parse_field(Specs, Field, ResultsBefore, Result, OctetsBefore, OctetsAfter).
@@ -28,6 +29,13 @@ parse_field_or_fail(Specs, Field, ResultsBefore, Result, OctetsBefore, OctetsAft
     true
   ; throw(parser_failed(Field)) ).
 
+
+parse_field(Specs, field(Identifier, cp_info, Atom - 1), Prev, Result, OctetsBefore, OctetsAfter) :-
+  functor(F, Atom, 1),
+  member(F, Prev),
+  arg(1, F, Count1),
+  Count is Count1 - 1,
+  true. % TODO
 
 parse_field(Specs, field(Identifier, cp_info), _, Result, OctetsBefore, OctetsAfter) :-
   cp_info_parser(Parser),
@@ -47,20 +55,20 @@ parse_field(Specs, field(Identifier, Parser), _, Result, OctetsBefore, OctetsAft
   parse_result(Identifier, R, Result).
 
 cp_info_parser(Atom) :- cp_info_tag(Atom, _Tag).
-cp_info_tag(constant_class, 7).
-cp_info_tag(constant_fieldref, 9).
-cp_info_tag(constant_methodref, 10).
-cp_info_tag(constant_interfacemethodref, 11).
-cp_info_tag(constant_string, 8).
-cp_info_tag(constant_integer, 3).
-cp_info_tag(constant_float, 4).
-cp_info_tag(constant_long, 5).
-cp_info_tag(constant_double, 6).
-cp_info_tag(constant_nameandtype, 12).
-cp_info_tag(constant_utf8, 1).
-cp_info_tag(constant_methodhandle, 15).
-cp_info_tag(constant_methodtype, 16).
-cp_info_tag(constant_invokedynamic, 18).
+cp_info_tag(constant_class_info, 7).
+cp_info_tag(constant_fieldref_info, 9).
+cp_info_tag(constant_methodref_info, 10).
+cp_info_tag(constant_interfacemethodref_info, 11).
+cp_info_tag(constant_string_info, 8).
+cp_info_tag(constant_integer_info, 3).
+cp_info_tag(constant_float_info, 4).
+cp_info_tag(constant_long_info, 5).
+cp_info_tag(constant_double_info, 6).
+cp_info_tag(constant_nameandtype_info, 12).
+cp_info_tag(constant_utf8_info, 1).
+cp_info_tag(constant_methodhandle_info, 15).
+cp_info_tag(constant_methodtype_info, 16).
+cp_info_tag(constant_invokedynamic_info, 18).
 
 
 spec_fields(Specs, Parser, Fields) :-
@@ -92,6 +100,16 @@ spec(spec(Name, Fields)) -->
   "\n", whites, 
   "}", whites, "\n".
 
+specs([Spec | Specs]) -->
+  spec(Spec),
+  {
+   Spec = spec(Name, _Fields),
+   format("Read ~a~n", [Name])
+   },
+  blanks,
+  specs(Specs), blanks.
+
+specs([]) --> [].
 
 field_spec(field(Identifier, ParserType)) -->
   "\n", whites,
@@ -99,6 +117,16 @@ field_spec(field(Identifier, ParserType)) -->
   whites,
   identifier(Identifier),
   ";".
+
+field_spec(field(Identifier, ParserType, CountTerm)) -->
+  "\n", whites,
+  parser(ParserType),
+  whites,
+  identifier(Identifier),
+  "[",
+  ( string_without("-]", S), { atom_codes(CountTerm, S) }
+  ; string_without("-]", S1), "-1", { atom_codes(A1, S1), CountTerm = A1 - 1 }),
+  "];".
 
 field_specs([]) --> [].
 
@@ -116,7 +144,7 @@ parser(ParserType) -->
   }.
 
 identifier(Identifier) -->
-  string_without("; \n\t", CIdentifier),
+  string_without("[; \n\t", CIdentifier),
   {
    CIdentifier = [_C | _Rest],
    atom_codes(UIdentifier, CIdentifier),

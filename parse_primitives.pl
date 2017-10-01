@@ -1,5 +1,5 @@
 
-:- module(parse_primitives, [u2/3, u4/3, u8/3, primitive/1]).
+:- module(parse_primitives, [u1/3, u2/3, u4/3, u8/3, primitive/1]).
 
 
 primitive(u1).
