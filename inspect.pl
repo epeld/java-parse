@@ -8,6 +8,23 @@
 % Top-Level API
 %
 
+reference_groups(ClassReferences, [G1 | Groups]) :-
+  reference_group(ClassReferences, G1),
+  
+  % Remove the 'used' edges
+  % TODO
+  
+  reference_groups(ClassReferences1, Groups).
+
+reference_group(ClassReferences, Group) :-
+  ClassReferences = [references(ClassName, _) | _Rest],
+  reference_group(ClassReferences, ClassName, Group).
+
+reference_group(ClassReferences, ClassName, Group) :-
+  setof(ClassName2, indirectly_references(ClassReferences, ClassName, ClassName2), DownStream),
+  setof(ClassName2, indirectly_references(ClassReferences, ClassName2, ClassName), UpStream),
+  union(DownStream, UpStream, Group).
+                  
 referenced_classes(ClassContents, References) :-
   referenced_class_names(ClassContents, ClassNames),
   class_name(ClassContents, ThisName),
@@ -23,6 +40,14 @@ constant_pool(ClassContents, ConstantPool) :-
 %
 % Helpers
 %
+
+indirectly_references(AllReferences, Source, Target) :-
+  member(references(Source, Target), AllReferences).
+
+indirectly_references(AllReferences, Source, Target) :-
+  Source \= Target, % Avoid recursion
+  member(references(Source, Target0), AllReferences),
+  indirectly_references(AllReferences, Target0, Target).
 
 constant_class_name(ClassContents, ClassName) :-
   constant_pool(ClassContents, Constants),
