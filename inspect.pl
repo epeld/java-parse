@@ -4,17 +4,41 @@
 :- use_module(spec_parse).
 
 
+%
+% Top-Level API
+%
 print_constants(ClassContents) :-
   constant_pool(ClassContents, Cs),
   forall(nth1(Ix, Cs, C),
          print_constant(Ix, C)).
 
+referenced_classes(ClassContents, ClassNames) :-
+  constant_pool(ClassContents, Constants),
+  setof(ClassName,
+        constant_class_name(Constants, ClassName),
+        ClassNames).
+
+
+%
+% Helpers
+%
+
+constant_class_name(Constants, ClassName) :-
+  member(ClassRef, Constants),
+  constant_type(ClassRef, constant_class_info),
+  member(name_index(Ix), ClassRef),
+  nth1(Ix, Constants, Utf8),
+  utf8_string(Utf8, ClassName).
 
 print_constant(Ix, C) :-
   constant_type(C, Type),
   constant_summary(Type, C, Summary),
   format("~t~d~3+ ~w~t~30+~w~t~30+~n", [Ix, Type, Summary]).
-  
+
+
+utf8_string(Utf8, String) :-
+  member(bytes(Codes), Utf8),
+  string_codes(String, Codes).
 
 constant_summary(constant_utf8_info, C, Summary) :-
   member(bytes(Codes), C),
